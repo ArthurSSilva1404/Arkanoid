@@ -3,6 +3,8 @@
 #ifndef ESTRUTURAS_H
 #define ESTRUTURAS_H
 
+#define MAX_LETRAS 10
+
 struct Posicao {
     int x;
     int y;
@@ -29,13 +31,16 @@ struct Bola {
     int id_cor;
 };
 
-struct Jogador {
+struct Barra {
     Retangulo2D retangulo;
     float velocidadex;
 };
 
 struct Fase {
-
+    Bloco *blocos;
+    int linha;
+    int coluna;
+    
 };
 
 struct ItensEspeciais {
@@ -43,6 +48,14 @@ struct ItensEspeciais {
     int tipo;
     int velocidadey;
     bool esta_Ativo;
+};
+
+struct Jogador {
+    char nome[MAX_LETRAS];
+    int pontuacao;
+    int tempo;
+    int vidas_jogador;
+
 };
 
 #endif
