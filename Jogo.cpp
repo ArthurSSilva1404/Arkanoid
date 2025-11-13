@@ -16,18 +16,22 @@ void iniciarJogo(EstadoJogo &jogo){
   jogo.bola.prendeu = true;
   jogo.bola.velocidadex = 200;
   jogo.bola.velocidadey = -250;
-  
+
+/*
+
   jogo.jogador.retangulo.posicao.x = 410;
   jogo.jogador.retangulo.posicao.y = 560;
   jogo.jogador.retangulo.largura = 160;
   jogo.jogador.retangulo.altura = 16;
   jogo.jogador.velocidade = 700;
 
-  jogo.ranking = 0;
+  jogo.fase.blocos
+
+*/
+
   jogo.niveis = 3;
   jogo.blocosRestantes = 0;
   jogo.vidas_jogador = 3;
-  jogo.tempo = 300;
 
 }
 
