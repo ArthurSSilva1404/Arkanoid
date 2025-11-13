@@ -9,13 +9,14 @@
 
 struct EstadoJogo {
 
+    Bloco bloco[MAX_BLOCOS];
     Bola bola;
     Jogador jogador;
-    Bloco bloco[MAX_BLOCOS];
     int ranking;
     int niveis;
     int blocosRestantes;
     int vidas_jogador;
+    int tempo;
 
 };
 
