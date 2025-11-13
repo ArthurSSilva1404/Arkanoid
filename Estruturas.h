@@ -26,11 +26,23 @@ struct Bola {
     int velocidadex;
     int velocidadey;
     bool prendeu;
+    int id_cor;
 };
 
 struct Jogador {
     Retangulo2D retangulo;
-    int tamanho;
+    float velocidadex;
+};
+
+struct Fase {
+
+};
+
+struct ItensEspeciais {
+    Posicao posicao_do_item;
+    int tipo;
+    int velocidadey;
+    bool esta_Ativo;
 };
 
 #endif
