@@ -4,9 +4,6 @@
 
 #include "Estruturas.h"
 
-struct Ranking {
+struct atualizarRanking(Jogador *jogador)
 
-    Jogador jogador;
-    int pontuacao_final;
-
-}
+#endif
