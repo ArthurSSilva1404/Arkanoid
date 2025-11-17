@@ -28,7 +28,6 @@ struct Bola {
     int velocidadex;
     int velocidadey;
     bool prendeu;
-    int id_cor;
 };
 
 struct Barra {
