@@ -7,12 +7,16 @@
 
   const int screenWidth = 800;
 
+  void movimentarBola(){ 
+
   jogo.bola.posicao.x = 0;
   jogo.bola.posicao.y = 0;
   jogo.bola.radium = 8;
   jogo.bola.prendeu = true;
   jogo.bola.velocidadex = 200;
   jogo.bola.velocidadey = -250;
+
+  }
 
   jogo.barra.retangulo.posicao.x = 410;
   jogo.barra.retangulo.posicao.y = 560;
@@ -24,11 +28,7 @@
   jogo.blocosRestantes = 0;
   jogo.fase_atual = 3;
 
-}
 
-void movimentarBola(){ 
-
-}
 
 void trocarNivel(){ 
 
