@@ -1,9 +1,9 @@
 #include <iostream>
 
+#include "Constantes.h"
+
 #ifndef ESTRUTURAS_H
 #define ESTRUTURAS_H
-
-#define MAX_LETRAS 10
 
 struct Posicao {
     float x;
@@ -56,5 +56,10 @@ struct Jogador {
     int vidas_jogador;
 
 };
+
+struct Ranking {
+    Jogador jogador[MAX_JOGADORES];
+
+}
 
 #endif
