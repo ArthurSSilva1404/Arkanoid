@@ -11,15 +11,6 @@ void iniciarBarra(Barra *barra) {
 
 }
 
-void desenharBarra(Barra *barra) {
-
-    DrawRectangle((int)barra->retangulo.posicao.x, (int)barra->retangulo.posicao.y,
-                  (int)barra->retangulo.largura, (int)barra->retangulo.altura, WHITE);
-
-    DrawRectangleLines ((int)barra->retangulo.posicao.x, (int)barra->retangulo.posicao.y,
-                  (int)barra->retangulo.largura, (int)barra->retangulo.altura, BLACK);
-}
-
 void atualizarTamanho(Barra *barra, int tamanhoAd, bool adicionar)
 {
     
@@ -33,4 +24,13 @@ void atualizarTamanho(Barra *barra, int tamanhoAd, bool adicionar)
 
     } //adicionar verificação se a barra está maior que a tela
 
+}
+
+void desenharBarra(Barra *barra) {
+
+    DrawRectangle((int)barra->retangulo.posicao.x, (int)barra->retangulo.posicao.y,
+                  (int)barra->retangulo.largura, (int)barra->retangulo.altura, WHITE);
+
+    DrawRectangleLines ((int)barra->retangulo.posicao.x, (int)barra->retangulo.posicao.y,
+                  (int)barra->retangulo.largura, (int)barra->retangulo.altura, BLACK);
 }
