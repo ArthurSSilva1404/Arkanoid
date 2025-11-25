@@ -12,6 +12,6 @@ void desenharFase(Fase *fase);
 
 void gerarItem(Fase *fase, ItensEspeciais item[], int maxItens);
 
-bool terminarFase(Fase *fase)
+bool terminarFase(Fase *fase);
 
 #endif
