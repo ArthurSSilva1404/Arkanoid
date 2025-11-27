@@ -11,6 +11,7 @@
 #define ESTADO_RANKING 4
 #define ESTADO_SAIR 5
 #define ESTADO_PAUSA 6
+#define ESTADO_CADASTRO 7
 
 // Estrutura para gerenciar o estado global do jogo
 struct GerenciadorEstado {
