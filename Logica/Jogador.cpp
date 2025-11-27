@@ -1,18 +1,14 @@
+#include <iostream>
+
 #include "Estruturas.h"
-#include "Jogador.h"
-#include "Constantes.h"
 
-void atualizarPontuacao(Jogador *jogador, int pontuacao) {
-    jogador->pontuacao += pontuacao;
-    if (jogador->pontuacao < 0) {
-        jogador->pontuacao = 0;
-    }
-}
+#ifndef JOGADOR
+#define JOGADOR
 
-void atualizarTempo(Jogador *jogador) {
-    jogador->tempo++;
-}
+void atualizarPontuacao(Jogador *jogador, int pontuacao);
 
-void atualizarVidas(Jogador *jogador) {
-    jogador->vidas_jogador--;
-}
+void atualizarTempo(Jogador *jogador);
+
+void atualizarVidas(Jogador *jogador);
+
+#endif
