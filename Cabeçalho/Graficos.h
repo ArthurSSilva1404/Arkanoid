@@ -4,6 +4,8 @@
 #ifndef GRAFICOS_H
 #define GRAFICOS_H
 
+struct EstadoJogo;
+
 // Cores do jogo
 extern Color COR_FUNDO;
 extern Color COR_TEXTO;
@@ -26,5 +28,25 @@ void desenharTelaCarregamento();
 void desenharFundo();
 
 void desenharBorda();
+
+void desenharFundoTematico(const Fase *fase, float animacao);
+
+void desenharEscudoVisual(Rectangle area, float intensidade);
+
+void desenharMeteoros(const Meteoro meteoros[], int quantidade);
+
+void desenharHUD(const EstadoJogo *estado);
+
+void desenharTelaGameOver(const EstadoJogo *estado, bool vitoria);
+
+void desenharTelaDificuldade(int selecionada);
+
+void inicializarSistemaParticulas(SistemaParticulas *sistema);
+
+void gerarExplosao(SistemaParticulas *sistema, Vector2 origem, Color corBase);
+
+void atualizarParticulas(SistemaParticulas *sistema, float dt);
+
+void desenharParticulas(const SistemaParticulas *sistema);
 
 #endif
