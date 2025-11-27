@@ -1,4 +1,3 @@
-
 #include <iostream>
 
 #include "Estruturas.h"
@@ -6,7 +5,7 @@
 #ifndef FASES
 #define FASES
 
-void iniciarFase(Fase *fase, int fase);
+void iniciarFase(Fase *fase, int numeroFase);
 
 void desenharFase(Fase *fase);
 
