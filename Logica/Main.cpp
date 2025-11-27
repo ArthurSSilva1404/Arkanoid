@@ -9,304 +9,419 @@
 #include "Jogador.h"
 #include "Menu.h"
 #include "Ranking.h"
-#include "utils.h"
-#include "estado.h"
-#include "graficos.h"
-#include "sons.h"
-#include <cstdio>
+#include "Utils.h"
+#include "Estado.h"
+#include "Graficos.h"
+#include "Cores.h"
+#include "Sons.h"
+#include "Jogo.h"
+
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 
-void inicializarJogo(EstadoJogo *estado, int dificuldade) {
-    // Inicializar bola
-    iniciarBola(&estado->bola);
-    
-    // Inicializar barra
-    iniciarBarra(&estado->barra);
-    
-    // Inicializar jogador
-    strcpy(estado->jogador.nome, "Jogador");
-    estado->jogador.pontuacao = 0;
-    estado->jogador.tempo = 0;
-    estado->jogador.vidas_jogador = VIDAS_INICIAIS;
-    
-    // Inicializar fase
-    estado->fase_atual = 1;
-    iniciarFase(&estado->fase, estado->fase_atual);
-    
-    // Inicializar itens
-    estado->qtd_itens = 0;
-    
-    // Definir dificuldade
-    estado->dificuldade = dificuldade;
-}
-
-void desenharHUD(EstadoJogo *estado) {
-    char texto[100];
-    
-    // Desenhar pontuação
-    sprintf(texto, "Pontuacao: %d", estado->jogador.pontuacao);
-    DrawText(texto, 10, 10, 20, WHITE);
-    
-    // Desenhar tempo
-    sprintf(texto, "Tempo: %ds", estado->jogador.tempo);
-    DrawText(texto, 10, 40, 20, WHITE);
-    
-    // Desenhar vidas
-    sprintf(texto, "Vidas: %d", estado->jogador.vidas_jogador);
-    DrawText(texto, 10, 70, 20, WHITE);
-    
-    // Desenhar fase
-    sprintf(texto, "Fase: %d", estado->fase_atual);
-    DrawText(texto, LARGURA_TELA - 150, 10, 20, WHITE);
-    
-    // Desenhar dificuldade
-    char dificuldade_str[20];
-    if (estado->dificuldade == 1) {
-        strcpy(dificuldade_str, "Facil");
-    } else if (estado->dificuldade == 2) {
-        strcpy(dificuldade_str, "Medio");
-    } else {
-        strcpy(dificuldade_str, "Dificil");
+static bool telaCadastroNome(char *nome, int tamanhoMaximo, bool reiniciar) {
+    static int posicao = 0;
+    if (reiniciar) {
+        nome[0] = '\0';
+        posicao = 0;
     }
-    sprintf(texto, "Dificuldade: %s", dificuldade_str);
-    DrawText(texto, LARGURA_TELA - 250, 40, 20, WHITE);
-}
 
-void desenharTelaGameOver(EstadoJogo *estado, bool vitoria) {
-    DrawRectangle(0, 0, LARGURA_TELA, ALTURA_TELA, Color{0, 0, 0, 200});
-    
-    if (vitoria) {
-        DrawText("VOCE VENCEU!", LARGURA_TELA / 2 - 150, ALTURA_TELA / 2 - 100, 50, YELLOW);
-    } else {
-        DrawText("GAME OVER!", LARGURA_TELA / 2 - 150, ALTURA_TELA / 2 - 100, 50, RED);
+    int key = GetCharPressed();
+    while (key > 0) {
+        if (key >= 32 && key <= 126 && posicao < tamanhoMaximo - 1) {
+            nome[posicao] = (char)key;
+            posicao++;
+            nome[posicao] = '\0';
+        }
+        key = GetCharPressed();
     }
-    
-    char texto[100];
-    sprintf(texto, "Pontuacao Final: %d", estado->jogador.pontuacao);
-    DrawText(texto, LARGURA_TELA / 2 - 150, ALTURA_TELA / 2, 30, WHITE);
-    
-    sprintf(texto, "Tempo: %ds", estado->jogador.tempo);
-    DrawText(texto, LARGURA_TELA / 2 - 150, ALTURA_TELA / 2 + 50, 30, WHITE);
-    
-    DrawText("Pressione ENTER para voltar ao menu", LARGURA_TELA / 2 - 200, ALTURA_TELA / 2 + 150, 20, LIGHTGRAY);
-}
 
-void desenharTelaDificuldade() {
+    if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressed(KEY_DELETE)) && posicao > 0) {
+        posicao--;
+        nome[posicao] = '\0';
+    }
+
     ClearBackground(obterCorFundo());
-    
-    DrawText("SELECIONE A DIFICULDADE", LARGURA_TELA / 2 - 200, 50, 40, obterCorTitulo());
-    
-    DrawText("1. Facil (velocidade normal)", LARGURA_TELA / 2 - 150, 200, 25, obterCorTexto());
-    DrawText("2. Medio (velocidade +25%)", LARGURA_TELA / 2 - 150, 280, 25, obterCorTexto());
-    DrawText("3. Dificil (velocidade +50%)", LARGURA_TELA / 2 - 150, 360, 25, obterCorTexto());
-    
-    DrawText("Pressione 1, 2 ou 3", LARGURA_TELA / 2 - 100, 500, 20, LIGHTGRAY);
+    desenharBorda();
+    DrawText("Digite seu nome galactico", LARGURA_TELA / 2 - 220, 120, 34, obterCorTitulo());
+    DrawRectangle(LARGURA_TELA / 2 - 220, 220, 440, 60, Color{0, 0, 0, 120});
+    DrawRectangleLines(LARGURA_TELA / 2 - 220, 220, 440, 60, obterCorTitulo());
+    DrawText(TextFormat("%s_", nome), LARGURA_TELA / 2 - 200, 235, 32, obterCorTexto());
+    DrawText("ENTER - confirmar | ESC - voltar", LARGURA_TELA / 2 - 200, ALTURA_TELA - 120, 22, LIGHTGRAY);
+
+    if ((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) && posicao > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static void refletirNaBarra(EstadoJogo *estado) {
+    float centroBarra = estado->barra.retangulo.posicao.x + estado->barra.retangulo.largura / 2.0f;
+    float distancia = (estado->bola.posicao.x - centroBarra) / (estado->barra.retangulo.largura / 2.0f);
+    estado->bola.velocidadex = estado->bola.velocidadeBase * distancia * estado->multiplicadorVelocidade * 1.2f;
+    estado->bola.velocidadey = -fabsf(estado->bola.velocidadey);
+    estado->bola.posicao.y = estado->barra.retangulo.posicao.y - estado->bola.radium - 1.0f;
+    atualizarPontuacao(&estado->jogador, 5);
+}
+
+static ItensEspeciais *alocarItem(EstadoJogo *estado) {
+    for (int i = 0; i < MAX_ITENS; i++) {
+        if (!estado->itens[i].esta_Ativo) {
+            if (i >= estado->qtd_itens) {
+                estado->qtd_itens = i + 1;
+            }
+            return &estado->itens[i];
+        }
+    }
+    return nullptr;
+}
+
+static float gerarIntervaloMeteoro() {
+    int minimo = (int)(METEORO_INTERVALO_MIN * 100.0f);
+    int maximo = (int)(METEORO_INTERVALO_MAX * 100.0f);
+    return (float)GetRandomValue(minimo, maximo) / 100.0f;
+}
+
+static void prepararMeteoros(EstadoJogo *estado) {
+    for (int i = 0; i < MAX_METEOROS; i++) {
+        estado->meteoros[i].ativo = false;
+    }
+    estado->tempoParaProximoMeteoro = gerarIntervaloMeteoro();
+}
+
+static void dispararMeteoro(EstadoJogo *estado) {
+    for (int i = 0; i < MAX_METEOROS; i++) {
+        if (!estado->meteoros[i].ativo) {
+            estado->meteoros[i].ativo = true;
+            estado->meteoros[i].posicao = { (float)GetRandomValue(-50, LARGURA_TELA + 50), -30.0f };
+            float velocidade = (float)GetRandomValue(180, 320);
+            estado->meteoros[i].velocidade = { -velocidade * 0.4f, velocidade };
+            estado->meteoros[i].tamanho = (float)GetRandomValue(6, 14);
+            estado->meteoros[i].cor = Color{255, (unsigned char)GetRandomValue(180, 230), 120, 180};
+            break;
+        }
+    }
+}
+
+static void atualizarMeteoros(EstadoJogo *estado, float dt) {
+    estado->tempoParaProximoMeteoro -= dt;
+    if (estado->tempoParaProximoMeteoro <= 0.0f) {
+        dispararMeteoro(estado);
+        estado->tempoParaProximoMeteoro = gerarIntervaloMeteoro();
+    }
+
+    for (int i = 0; i < MAX_METEOROS; i++) {
+        if (!estado->meteoros[i].ativo) continue;
+        estado->meteoros[i].posicao.x += estado->meteoros[i].velocidade.x * dt;
+        estado->meteoros[i].posicao.y += estado->meteoros[i].velocidade.y * dt;
+        if (estado->meteoros[i].posicao.y > ALTURA_TELA + 40) {
+            estado->meteoros[i].ativo = false;
+        }
+    }
+}
+
+static void processarBlocos(EstadoJogo *estado) {
+    int total_blocos = estado->fase.linha * estado->fase.coluna;
+    for (int i = 0; i < total_blocos; i++) {
+        Bloco *bloco = &estado->fase.blocos[i];
+        if (!bloco->ativo) {
+            continue;
+        }
+
+        if (verificarColisaoCirculoRetangulo(estado->bola.posicao, estado->bola.radium, bloco->retangulo)) {
+            float centroX = bloco->retangulo.posicao.x + bloco->retangulo.largura / 2.0f;
+            float centroY = bloco->retangulo.posicao.y + bloco->retangulo.altura / 2.0f;
+            float diferencaX = estado->bola.posicao.x - centroX;
+            float diferencaY = estado->bola.posicao.y - centroY;
+
+            if (fabsf(diferencaX) > fabsf(diferencaY)) {
+                estado->bola.velocidadex *= -1;
+            } else {
+                estado->bola.velocidadey *= -1;
+            }
+
+            estado->bola.posicao.x += estado->bola.velocidadex * GetFrameTime();
+            estado->bola.posicao.y += estado->bola.velocidadey * GetFrameTime();
+
+            if (bloco->indestrutivel) {
+                gerarExplosao(&estado->sistemaParticulas,
+                              Vector2{centroX, centroY},
+                              bloco->cor);
+                continue;
+            }
+
+            bloco->TotalDeVida--;
+
+            if (bloco->TotalDeVida <= 0) {
+                bloco->ativo = false;
+                estado->estatisticas.blocosQuebrados++;
+                estado->jogador.blocos_quebrados++;
+
+                int pontos = (int)(bloco->pontosBase * estado->multiplicadorVelocidade);
+                atualizarPontuacao(&estado->jogador, pontos);
+                gerarExplosao(&estado->sistemaParticulas,
+                              Vector2{centroX, centroY},
+                              bloco->cor);
+
+                if (bloco->possuiItem) {
+                    ItensEspeciais *novoItem = alocarItem(estado);
+                    if (novoItem != nullptr) {
+                        int tipo = gerarAleatorio(ITEM_VIDA, ITEM_ESCUDO);
+                        if (tipo == ITEM_ESCUDO && estado->escudoAtivo) {
+                            tipo = ITEM_PONTOS_EXTRAS;
+                        }
+                        iniciarItem(novoItem, tipo, centroX, centroY);
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+
+static void atualizarItens(EstadoJogo *estado) {
+    for (int i = 0; i < estado->qtd_itens; i++) {
+        ItensEspeciais *item = &estado->itens[i];
+        if (!item->esta_Ativo) {
+            continue;
+        }
+
+        atualizarItem(item);
+        if (verificarColisaoCirculoRetangulo(item->posicao_do_item, item->tamanho / 2.0f, estado->barra.retangulo)) {
+            efeitoItem(item, estado);
+        }
+    }
+}
+
+static void desenharItens(const EstadoJogo *estado) {
+    for (int i = 0; i < estado->qtd_itens; i++) {
+        if (estado->itens[i].esta_Ativo) {
+            desenharItem((ItensEspeciais *)&estado->itens[i]);
+        }
+    }
+}
+
+static void atualizarPartida(EstadoJogo *estado, float dt) {
+    if (estado->aguardandoLancamento) {
+        alinharBolaNaBarra(&estado->bola, &estado->barra);
+        if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP)) {
+            estado->aguardandoLancamento = false;
+            soltarBola(&estado->bola, estado->multiplicadorVelocidade);
+        }
+    } else {
+        atualizarBola(&estado->bola, dt);
+    }
+
+    atualizarBarra(&estado->barra, dt);
+
+    if (verificarColisaoCirculoRetangulo(estado->bola.posicao, estado->bola.radium, estado->barra.retangulo) &&
+        estado->bola.velocidadey > 0) {
+        refletirNaBarra(estado);
+    }
+
+    processarBlocos(estado);
+    atualizarItens(estado);
+    atualizarParticulas(&estado->sistemaParticulas, dt);
+    atualizarMeteoros(estado, dt);
+
+    if (estado->escudoAtivo) {
+        estado->tempoEscudoRestante -= dt;
+        if (estado->tempoEscudoRestante <= 0.0f) {
+            estado->escudoAtivo = false;
+            estado->tempoEscudoRestante = 0.0f;
+        }
+    }
+}
+
+static void perderVida(EstadoJogo *estado) {
+    atualizarVidas(&estado->jogador);
+    estado->estatisticas.vidasGastas++;
+    estado->aguardandoLancamento = true;
+    estado->bola.prendeu = true;
+    estado->bola.velocidadex = 0.0f;
+    estado->bola.velocidadey = -estado->bola.velocidadeBase * estado->multiplicadorVelocidade;
+    alinharBolaNaBarra(&estado->bola, &estado->barra);
+    estado->escudoAtivo = false;
+    estado->tempoEscudoRestante = 0.0f;
+}
+
+static void avancarFase(EstadoJogo *estado) {
+    estado->fase_atual++;
+    estado->estatisticas.fasesConcluidas++;
+    iniciarFase(&estado->fase, estado->fase_atual);
+    reiniciarElementosDaFase(estado);
+    prepararMeteoros(estado);
+}
+
+static void finalizarRodada(EstadoJogo *estado, Ranking *ranking) {
+    consolidarPontuacaoFinal(estado);
+    atualizarRanking(ranking, &estado->jogador);
+    estado->jogoConcluido = true;
 }
 
 int main() {
     srand((unsigned int)time(NULL));
-    
-    InitWindow(LARGURA_TELA, ALTURA_TELA, "Arkanoid 2D");
+    InitWindow(LARGURA_TELA, ALTURA_TELA, "Arkanoid 2D - Projeto M3");
     SetTargetFPS(60);
 
     EstadoJogo estado = {};
+    estado.fase.blocos = nullptr;
     Ranking ranking = {};
-    
-    int estado_atual = ESTADO_MENU;
-    int dificuldade_selecionada = 1;
-    float tempo_decorrido = 0.0f;
-    int blocos_quebrados = 0;
-    
     iniciarRanking(&ranking, (char *)ARQUIVO_RANKING);
+
+    int estadoPrincipal = ESTADO_MENU;
+    int dificuldadeSelecionada = DIFICULDADE_FACIL;
+    float tempoDecorrido = 0.0f;
+    bool precisaLimparNome = true;
+    char nomeDigitado[MAX_LETRAS] = "Jogador";
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
-        tempo_decorrido += dt;
+        if (estadoPrincipal == ESTADO_JOGANDO) {
+            tempoDecorrido += dt;
+            estado.jogador.tempo = (int)tempoDecorrido;
+        }
 
         BeginDrawing();
 
-        switch (estado_atual) {
+        switch (estadoPrincipal) {
             case ESTADO_MENU: {
+                desenharFundo();
+                desenharBorda();
                 int opcao = menuIniciar();
-                
-                if (opcao == 0) {
-                    estado_atual = ESTADO_DIFICULDADE;
-                } else if (opcao == 1) {
-                    estado_atual = ESTADO_DIFICULDADE;
-                } else if (opcao == 2) {
-                    estado_atual = ESTADO_RANKING;
-                } else if (opcao == 3) {
-                    estado_atual = ESTADO_SAIR;
+                if (opcao == MENU_OP_INICIAR) {
+                    dificuldadeSelecionada = DIFICULDADE_FACIL;
+                    estadoPrincipal = ESTADO_CADASTRO;
+                    precisaLimparNome = true;
+                } else if (opcao == MENU_OP_DIFICULDADE) {
+                    estadoPrincipal = ESTADO_DIFICULDADE;
+                } else if (opcao == MENU_OP_RANKING) {
+                    estadoPrincipal = ESTADO_RANKING;
+                } else if (opcao == MENU_OP_SAIR) {
+                    estadoPrincipal = ESTADO_SAIR;
                 }
                 break;
             }
-
+            case ESTADO_CADASTRO: {
+                bool confirmado = telaCadastroNome(nomeDigitado, MAX_LETRAS, precisaLimparNome);
+                precisaLimparNome = false;
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    estadoPrincipal = ESTADO_MENU;
+                } else if (confirmado) {
+                    estadoPrincipal = ESTADO_DIFICULDADE;
+                }
+                break;
+            }
             case ESTADO_DIFICULDADE: {
-                desenharTelaDificuldade();
-                
-                if (IsKeyPressed(KEY_ONE)) {
-                    dificuldade_selecionada = 1;
-                    inicializarJogo(&estado, dificuldade_selecionada);
-                    estado_atual = ESTADO_JOGANDO;
-                    tempo_decorrido = 0.0f;
-                    blocos_quebrados = 0;
-                } else if (IsKeyPressed(KEY_TWO)) {
-                    dificuldade_selecionada = 2;
-                    inicializarJogo(&estado, dificuldade_selecionada);
-                    estado_atual = ESTADO_JOGANDO;
-                    tempo_decorrido = 0.0f;
-                    blocos_quebrados = 0;
-                } else if (IsKeyPressed(KEY_THREE)) {
-                    dificuldade_selecionada = 3;
-                    inicializarJogo(&estado, dificuldade_selecionada);
-                    estado_atual = ESTADO_JOGANDO;
-                    tempo_decorrido = 0.0f;
-                    blocos_quebrados = 0;
+                desenharTelaDificuldade(dificuldadeSelecionada);
+                if (IsKeyPressed(KEY_ONE)) dificuldadeSelecionada = DIFICULDADE_FACIL;
+                if (IsKeyPressed(KEY_TWO)) dificuldadeSelecionada = DIFICULDADE_MEDIO;
+                if (IsKeyPressed(KEY_THREE)) dificuldadeSelecionada = DIFICULDADE_DIFICIL;
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    estadoPrincipal = ESTADO_MENU;
+                } else if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) {
+                    prepararEstadoJogo(&estado, nomeDigitado, dificuldadeSelecionada);
+                    prepararMeteoros(&estado);
+                    tempoDecorrido = 0.0f;
+                    estadoPrincipal = ESTADO_JOGANDO;
                 }
                 break;
             }
-
             case ESTADO_JOGANDO: {
-                ClearBackground(obterCorFundo());
+                desenharFundoTematico(&estado.fase, tempoDecorrido);
+                atualizarPartida(&estado, dt);
 
-                // Atualizar tempo
-                estado.jogador.tempo = (int)tempo_decorrido;
-
-                // Atualizar barra
-                atualizarBarra(&estado.barra, dt);
-
-                // Atualizar bola
-                atualizarBola(&estado.bola, dt);
-
-                // Verificar colisão bola com barra
-                if (verificarColisaoCirculoRetangulo(estado.bola.posicao, estado.bola.radium, estado.barra.retangulo)) {
-                    estado.bola.velocidadey *= -1;
-                    estado.bola.posicao.y = estado.barra.retangulo.posicao.y - estado.bola.radium;
-                    
-                    // Adicionar pontos por rebater
-                    atualizarPontuacao(&estado.jogador, 10);
-                }
-
-                // Verificar colisão bola com blocos
-                int total_blocos = estado.fase.linha * estado.fase.coluna;
-                for (int i = 0; i < total_blocos; i++) {
-                    if (estado.fase.blocos[i].ativo) {
-                        if (verificarColisaoCirculoRetangulo(estado.bola.posicao, estado.bola.radium, estado.fase.blocos[i].retangulo)) {
-                            // Diminuir vida do bloco
-                            estado.fase.blocos[i].TotalDeVida--;
-                            
-                            if (estado.fase.blocos[i].TotalDeVida <= 0) {
-                                estado.fase.blocos[i].ativo = false;
-                                blocos_quebrados++;
-                                
-                                // Calcular pontos
-                                int pontos = 100;
-                                if (estado.dificuldade == 2) {
-                                    pontos = (int)(pontos * 1.25f);
-                                } else if (estado.dificuldade == 3) {
-                                    pontos = (int)(pontos * 1.5f);
-                                }
-                                atualizarPontuacao(&estado.jogador, pontos);
-                                
-                                // Gerar item aleatório
-                                if (gerarAleatorio(1, 100) <= 30) { // 30% de chance
-                                    int tipo_item = gerarAleatorio(1, 5);
-                                    if (estado.qtd_itens < MAX_ITENS) {
-                                        iniciarItem(&estado.itens[estado.qtd_itens], tipo_item, 
-                                                   estado.fase.blocos[i].retangulo.posicao.x, 
-                                                   estado.fase.blocos[i].retangulo.posicao.y);
-                                        estado.qtd_itens++;
-                                    }
-                                }
-                            }
-                            
-                            // Inverter velocidade da bola
-                            estado.bola.velocidadey *= -1;
-                            estado.bola.posicao.y = estado.fase.blocos[i].retangulo.posicao.y - estado.bola.radium;
-                            break;
-                        }
-                    }
-                }
-
-                // Atualizar itens
-                for (int i = 0; i < estado.qtd_itens; i++) {
-                    if (estado.itens[i].esta_Ativo) {
-                        atualizarItem(&estado.itens[i]);
-                        
-                        // Verificar colisão item com barra
-                        Retangulo2D item_rect = {
-                            {estado.itens[i].posicao_do_item.x - 5, estado.itens[i].posicao_do_item.y - 5},
-                            10, 10
-                        };
-                        
-                        if (verificarColisaoCirculoRetangulo(estado.itens[i].posicao_do_item, 5, estado.barra.retangulo)) {
-                            efeitoItem(&estado.itens[i], &estado.jogador, &estado.barra);
-                        }
-                    }
-                }
-
-                // Verificar se bola saiu da tela (game over)
-                if (estado.bola.posicao.y > ALTURA_TELA) {
-                    atualizarVidas(&estado.jogador);
-                    
-                    if (estado.jogador.vidas_jogador <= 0) {
-                        estado_atual = ESTADO_GAME_OVER;
-                        atualizarRanking(&ranking, &estado.jogador);
+                if (estado.bola.posicao.y - estado.bola.radium > ALTURA_TELA) {
+                    if (estado.escudoAtivo) {
+                        estado.escudoAtivo = false;
+                        estado.tempoEscudoRestante = 0.0f;
+                        estado.bola.velocidadey = -fabsf(estado.bola.velocidadeBase * estado.multiplicadorVelocidade);
+                        estado.bola.posicao.y = estado.escudoArea.y - estado.bola.radium - 2.0f;
+                        gerarExplosao(&estado.sistemaParticulas,
+                                      Vector2{estado.bola.posicao.x, estado.escudoArea.y},
+                                      obterCorItemEscudo());
+                    } else if (estado.jogador.vidas_jogador > 1) {
+                        perderVida(&estado);
                     } else {
-                        // Reiniciar bola
-                        iniciarBola(&estado.bola);
+                        atualizarVidas(&estado.jogador);
+                        estado.estatisticas.vidasGastas++;
+                        finalizarRodada(&estado, &ranking);
+                        estadoPrincipal = ESTADO_GAME_OVER;
                     }
                 }
 
-                // Verificar se fase foi completada
                 if (terminarFase(&estado.fase)) {
-                    estado.fase_atual++;
-                    
-                    if (estado.fase_atual > 3) {
-                        // Vitória!
-                        estado_atual = ESTADO_GAME_OVER;
-                        atualizarRanking(&ranking, &estado.jogador);
+                    if (estado.fase_atual >= MAX_FASES) {
+                        estado.fase_atual = MAX_FASES + 1;
+                        finalizarRodada(&estado, &ranking);
+                        estadoPrincipal = ESTADO_GAME_OVER;
                     } else {
-                        // Próxima fase
-                        iniciarFase(&estado.fase, estado.fase_atual);
-                        iniciarBola(&estado.bola);
+                        avancarFase(&estado);
                     }
                 }
 
-                // Desenhar tudo
+                if (IsKeyPressed(KEY_P)) {
+                    estadoPrincipal = ESTADO_PAUSA;
+                }
+
+                desenharMeteoros(estado.meteoros, MAX_METEOROS);
+                desenharFase(&estado.fase);
+                desenharParticulas(&estado.sistemaParticulas);
+                desenharBarra(&estado.barra);
+                desenharBola(&estado.bola);
+                desenharItens(&estado);
+                if (estado.escudoAtivo) {
+                    desenharEscudoVisual(estado.escudoArea, estado.tempoEscudoRestante / TEMPO_ESCUDO);
+                }
+                desenharHUD(&estado);
+                break;
+            }
+            case ESTADO_PAUSA: {
+                desenharFundoTematico(&estado.fase, tempoDecorrido);
+                desenharMeteoros(estado.meteoros, MAX_METEOROS);
                 desenharFase(&estado.fase);
                 desenharBarra(&estado.barra);
                 desenharBola(&estado.bola);
-                
-                for (int i = 0; i < estado.qtd_itens; i++) {
-                    desenharItem(&estado.itens[i]);
+                desenharItens(&estado);
+                if (estado.escudoAtivo) {
+                    desenharEscudoVisual(estado.escudoArea, estado.tempoEscudoRestante / TEMPO_ESCUDO);
                 }
-                
-                desenharHUD(&estado);
+                DrawRectangle(0, 0, LARGURA_TELA, ALTURA_TELA, Color{0, 0, 0, 180});
+                DrawText("Jogo Pausado", LARGURA_TELA / 2 - 150, ALTURA_TELA / 2 - 40, 36, obterCorTitulo());
+                DrawText("P - Retomar | ESC - Menu", LARGURA_TELA / 2 - 200, ALTURA_TELA / 2 + 10, 24, obterCorTexto());
+                if (IsKeyPressed(KEY_P)) {
+                    estadoPrincipal = ESTADO_JOGANDO;
+                } else if (IsKeyPressed(KEY_ESCAPE)) {
+                    estadoPrincipal = ESTADO_MENU;
+                }
                 break;
             }
-
             case ESTADO_GAME_OVER: {
-                ClearBackground(obterCorFundo());
-                desenharHUD(&estado);
-                
-                bool vitoria = (estado.fase_atual > 3);
-                desenharTelaGameOver(&estado, vitoria);
-                
+                desenharFundoTematico(&estado.fase, tempoDecorrido);
+                desenharMeteoros(estado.meteoros, MAX_METEOROS);
+                desenharFase(&estado.fase);
+                desenharTelaGameOver(&estado, estado.fase_atual > MAX_FASES);
                 if (IsKeyPressed(KEY_ENTER)) {
-                    estado_atual = ESTADO_MENU;
+                    estadoPrincipal = ESTADO_MENU;
+                    precisaLimparNome = true;
+                } else if (IsKeyPressed(KEY_R)) {
+                    prepararEstadoJogo(&estado, nomeDigitado, dificuldadeSelecionada);
+                    prepararMeteoros(&estado);
+                    tempoDecorrido = 0.0f;
+                    estadoPrincipal = ESTADO_JOGANDO;
                 }
                 break;
             }
-
             case ESTADO_RANKING: {
                 desenharRanking(&ranking);
-                estado_atual = ESTADO_MENU;
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    estadoPrincipal = ESTADO_MENU;
+                }
                 break;
             }
-
             case ESTADO_SAIR: {
                 CloseWindow();
                 return 0;
@@ -316,6 +431,9 @@ int main() {
         EndDrawing();
     }
 
+    if (estado.fase.blocos != nullptr) {
+        free(estado.fase.blocos);
+    }
     CloseWindow();
     return 0;
 }
