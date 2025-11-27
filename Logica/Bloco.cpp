@@ -1,8 +1,9 @@
 #include "Estruturas.h"
 #include "Bloco.h"
 #include "Constantes.h"
-#include "cores.h"
+#include "Cores.h"
 #include "raylib.h"
+#include <algorithm>
 
 void iniciarBloco(Bloco *bloco, float posx, float posy, int vida) {
     bloco->retangulo.posicao.x = posx;
@@ -11,19 +12,24 @@ void iniciarBloco(Bloco *bloco, float posx, float posy, int vida) {
     bloco->retangulo.altura = TAMANHO_BLOCO_ALTURA;
     bloco->ativo = true;
     bloco->TotalDeVida = vida;
+    bloco->cor = obterCorBlocoFraco();
+    bloco->pontosBase = 80;
+    bloco->possuiItem = false;
 }
 
 void desenharBloco(Bloco *bloco) {
     if (bloco->ativo) {
-        Color cor;
-        
-        // Cores diferentes baseadas na vida
-        if (bloco->TotalDeVida == 3) {
-            cor = obterCorBlocoForte();
-        } else if (bloco->TotalDeVida == 2) {
-            cor = obterCorBlocoMedio();
-        } else {
-            cor = obterCorBlocoFraco();
+        Color cor = bloco->cor;
+        if (bloco->TotalDeVida == 2) {
+            cor = Color{(unsigned char)std::min(255, cor.r + 20),
+                        (unsigned char)std::min(255, cor.g + 20),
+                        (unsigned char)std::min(255, cor.b + 20),
+                        cor.a};
+        } else if (bloco->TotalDeVida == 1) {
+            cor = Color{(unsigned char)std::min(255, cor.r + 40),
+                        (unsigned char)std::min(255, cor.g + 40),
+                        (unsigned char)std::min(255, cor.b + 40),
+                        cor.a};
         }
 
         DrawRectangle((int)bloco->retangulo.posicao.x, (int)bloco->retangulo.posicao.y,
