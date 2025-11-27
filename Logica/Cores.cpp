@@ -13,6 +13,14 @@ Color obterCorBlocoFraco() {
     return YELLOW;
 }
 
+Color obterCorBlocoMetal() {
+    return Color{170, 177, 196, 255};
+}
+
+Color obterCorBlocoTitanio() {
+    return Color{120, 180, 220, 255};
+}
+
 Color obterCorBola() {
     return YELLOW;
 }
@@ -41,6 +49,10 @@ Color obterCorItemInversor() {
     return PINK;
 }
 
+Color obterCorItemEscudo() {
+    return Color{110, 255, 255, 255};
+}
+
 Color obterCorFundo() {
     return DARKBLUE;
 }
@@ -52,4 +64,3 @@ Color obterCorTexto() {
 Color obterCorTitulo() {
     return YELLOW;
 }
-
