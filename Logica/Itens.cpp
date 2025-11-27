@@ -1,7 +1,8 @@
 #include "Estruturas.h"
 #include "Itens.h"
 #include "Constantes.h"
-#include "cores.h"
+#include "Cores.h"
+#include "Jogo.h"
 #include "raylib.h"
 
 void iniciarItem(ItensEspeciais *item, int tipo, float posx, float posy) {
@@ -10,35 +11,58 @@ void iniciarItem(ItensEspeciais *item, int tipo, float posx, float posy) {
     item->tipo = tipo;
     item->velocidadey = 150.0f;
     item->esta_Ativo = true;
+    item->tamanho = TAMANHO_ITEM;
+    switch (tipo) {
+        case ITEM_VIDA:
+            item->cor = obterCorItemVida();
+            break;
+        case ITEM_AUMENTAR_BARRA:
+            item->cor = obterCorItemAumentar();
+            break;
+        case ITEM_DIMINUIR_BARRA:
+            item->cor = obterCorItemDiminuir();
+            break;
+        case ITEM_PONTOS_EXTRAS:
+            item->cor = obterCorItemPontos();
+            break;
+        case ITEM_INVERSOR:
+            item->cor = obterCorItemInversor();
+            break;
+        case ITEM_ESCUDO:
+            item->cor = obterCorItemEscudo();
+            break;
+        default:
+            item->cor = WHITE;
+    }
 }
 
 void desenharItem(ItensEspeciais *item) {
     if (item->esta_Ativo) {
-        Color cor;
-        
-        // Cores diferentes para cada tipo de item
+        DrawCircleV({item->posicao_do_item.x, item->posicao_do_item.y}, item->tamanho / 2.0f, Fade(item->cor, 0.8f));
+        DrawCircleLines((int)item->posicao_do_item.x, (int)item->posicao_do_item.y, item->tamanho / 2.0f, BLACK);
+
+        const char *label = "";
         switch (item->tipo) {
             case ITEM_VIDA:
-                cor = obterCorItemVida();
+                label = "+";
                 break;
             case ITEM_AUMENTAR_BARRA:
-                cor = obterCorItemAumentar();
+                label = ">";
                 break;
             case ITEM_DIMINUIR_BARRA:
-                cor = obterCorItemDiminuir();
+                label = "<";
                 break;
             case ITEM_PONTOS_EXTRAS:
-                cor = obterCorItemPontos();
+                label = "P";
                 break;
             case ITEM_INVERSOR:
-                cor = obterCorItemInversor();
+                label = "!";
                 break;
-            default:
-                cor = WHITE;
+            case ITEM_ESCUDO:
+                label = "S";
+                break;
         }
-
-        DrawRectangle((int)item->posicao_do_item.x - 5, (int)item->posicao_do_item.y - 5, 10, 10, cor);
-        DrawRectangleLines((int)item->posicao_do_item.x - 5, (int)item->posicao_do_item.y - 5, 10, 10, BLACK);
+        DrawText(label, (int)item->posicao_do_item.x - 5, (int)item->posicao_do_item.y - 6, 16, BLACK);
     }
 }
 
@@ -53,28 +77,42 @@ void atualizarItem(ItensEspeciais *item) {
     }
 }
 
-void efeitoItem(ItensEspeciais *item, Jogador *jogador, Barra *barra) {
-    if (!item->esta_Ativo) return;
+void efeitoItem(ItensEspeciais *item, EstadoJogo *estado) {
+    if (!item->esta_Ativo || estado == nullptr) return;
+
+    Jogador *jogador = &estado->jogador;
+    Barra *barra = &estado->barra;
+    EstatisticasPartida *estatisticas = &estado->estatisticas;
+
+    jogador->itens_coletados++;
+    estatisticas->itensColetados++;
 
     switch (item->tipo) {
         case ITEM_VIDA:
-            jogador->vidas_jogador++;
+            jogador->pontuacao += 250;
+            estatisticas->bonusPontuacao += 250;
             break;
         case ITEM_AUMENTAR_BARRA:
-            if (barra->retangulo.largura < 200) {
-                barra->retangulo.largura += 20;
+            if (barra->retangulo.largura < 220) {
+                barra->retangulo.largura += 24;
             }
             break;
         case ITEM_DIMINUIR_BARRA:
-            if (barra->retangulo.largura > 40) {
-                barra->retangulo.largura -= 20;
+            if (barra->retangulo.largura > 70) {
+                barra->retangulo.largura -= 24;
             }
             break;
         case ITEM_PONTOS_EXTRAS:
             jogador->pontuacao += 500;
+            estatisticas->bonusPontuacao += 500;
             break;
         case ITEM_INVERSOR:
-            jogador->pontuacao = (jogador->pontuacao > 0) ? 0 : jogador->pontuacao;
+            jogador->pontuacao = -jogador->pontuacao;
+            estatisticas->pontuacaoInvertida = !estatisticas->pontuacaoInvertida;
+            break;
+        case ITEM_ESCUDO:
+            estado->escudoAtivo = true;
+            estado->tempoEscudoRestante = TEMPO_ESCUDO;
             break;
     }
 
