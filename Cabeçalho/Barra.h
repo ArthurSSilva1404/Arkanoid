@@ -7,7 +7,7 @@
 
 void iniciarBarra(Barra *barra);
 
-void atualizarBarra(Barra *barra, int dt);
+void atualizarBarra(Barra *barra, float dt);
 
 void atualizarTamanho(Barra *barra, int tamanhoAd, bool adicionar);
 
