@@ -1,4 +1,4 @@
-#include "sons.h"
+#include "Sons.h"
 
 static GerenciadorSons gerenciador_global = {true, 1.0f};
 
@@ -53,4 +53,3 @@ void definirVolume(float volume) {
 void alternarSom() {
     gerenciador_global.som_ativado = !gerenciador_global.som_ativado;
 }
-
