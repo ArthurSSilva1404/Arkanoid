@@ -1,6 +1,7 @@
 #include "Ranking.h"
 #include "Constantes.h"
-#include "cores.h"
+#include "Cores.h"
+#include "Jogo.h"
 #include "raylib.h"
 #include <cstdio>
 #include <cstring>
@@ -14,6 +15,8 @@ void iniciarRanking(Ranking *ranking, char *arquivo) {
         ranking->jogador[i].pontuacao = 0;
         ranking->jogador[i].tempo = 0;
         ranking->jogador[i].vidas_jogador = 0;
+        strcpy(ranking->jogador[i].dataRegistro, "--/--");
+        ranking->jogador[i].dificuldadeSelecionada = DIFICULDADE_FACIL;
     }
 
     carregarRanking(ranking);
@@ -52,45 +55,28 @@ void atualizarRanking(Ranking *ranking, Jogador *jogador) {
 }
 
 void desenharRanking(Ranking *ranking) {
-    bool voltando = false;
+    ClearBackground(obterCorFundo());
 
-    while (!voltando && !WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(obterCorFundo());
+    DrawText("Ranking Galatico", LARGURA_TELA / 2 - 180, 40, 40, obterCorTitulo());
 
-        DrawText("RANKING", LARGURA_TELA / 2 - 80, 30, 50, obterCorTitulo());
+    DrawText("Pos", 60, 120, 20, obterCorTexto());
+    DrawText("Nome", 110, 120, 20, obterCorTexto());
+    DrawText("Pts", 290, 120, 20, obterCorTexto());
+    DrawText("Tempo", 380, 120, 20, obterCorTexto());
+    DrawText("Dif", 500, 120, 20, obterCorTexto());
+    DrawText("Data", 580, 120, 20, obterCorTexto());
 
-        // Desenhar cabeçalho
-        DrawText("Pos", 50, 100, 20, obterCorTexto());
-        DrawText("Nome", 120, 100, 20, obterCorTexto());
-        DrawText("Pontuacao", 300, 100, 20, obterCorTexto());
-        DrawText("Tempo", 500, 100, 20, obterCorTexto());
-
-        // Desenhar ranking
-        for (int i = 0; i < ranking->total_jogadores && i < MAX_JOGADORES; i++) {
-            char posicao[10];
-            sprintf(posicao, "%d", i + 1);
-            
-            char pontuacao_str[20];
-            sprintf(pontuacao_str, "%d", ranking->jogador[i].pontuacao);
-            
-            char tempo_str[20];
-            sprintf(tempo_str, "%ds", ranking->jogador[i].tempo);
-
-            DrawText(posicao, 50, 140 + i * 30, 20, obterCorTexto());
-            DrawText(ranking->jogador[i].nome, 120, 140 + i * 30, 20, obterCorTexto());
-            DrawText(pontuacao_str, 300, 140 + i * 30, 20, obterCorTexto());
-            DrawText(tempo_str, 500, 140 + i * 30, 20, obterCorTexto());
-        }
-
-        DrawText("Pressione ESC para voltar", LARGURA_TELA / 2 - 150, 550, 20, LIGHTGRAY);
-
-        if (IsKeyPressed(KEY_ESCAPE)) {
-            voltando = true;
-        }
-
-        EndDrawing();
+    for (int i = 0; i < ranking->total_jogadores && i < MAX_JOGADORES; i++) {
+        int linhaY = 160 + i * 36;
+        DrawText(TextFormat("%d", i + 1), 60, linhaY, 20, obterCorTexto());
+        DrawText(ranking->jogador[i].nome, 110, linhaY, 20, obterCorTexto());
+        DrawText(TextFormat("%d", ranking->jogador[i].pontuacao), 290, linhaY, 20, obterCorTexto());
+        DrawText(TextFormat("%ds", ranking->jogador[i].tempo), 380, linhaY, 20, obterCorTexto());
+        DrawText(obterNomeDificuldade(ranking->jogador[i].dificuldadeSelecionada), 500, linhaY, 20, obterCorTexto());
+        DrawText(ranking->jogador[i].dataRegistro, 580, linhaY, 20, obterCorTexto());
     }
+
+    DrawText("ESC - voltar ao menu", LARGURA_TELA / 2 - 120, ALTURA_TELA - 60, 20, LIGHTGRAY);
 }
 
 void salvarRanking(Ranking *ranking) {
@@ -103,10 +89,12 @@ void salvarRanking(Ranking *ranking) {
     fprintf(arquivo, "%d\n", ranking->total_jogadores);
 
     for (int i = 0; i < ranking->total_jogadores; i++) {
-        fprintf(arquivo, "%s %d %d\n", 
+        fprintf(arquivo, "%s;%d;%d;%d;%s\n", 
                 ranking->jogador[i].nome,
                 ranking->jogador[i].pontuacao,
-                ranking->jogador[i].tempo);
+                ranking->jogador[i].tempo,
+                ranking->jogador[i].dificuldadeSelecionada,
+                ranking->jogador[i].dataRegistro);
     }
 
     fclose(arquivo);
@@ -121,14 +109,18 @@ void carregarRanking(Ranking *ranking) {
     }
 
     fscanf(arquivo, "%d\n", &ranking->total_jogadores);
+    if (ranking->total_jogadores > MAX_JOGADORES) {
+        ranking->total_jogadores = MAX_JOGADORES;
+    }
 
-    for (int i = 0; i < ranking->total_jogadores && i < MAX_JOGADORES; i++) {
-        fscanf(arquivo, "%s %d %d\n",
+    for (int i = 0; i < ranking->total_jogadores; i++) {
+        fscanf(arquivo, "%49[^;];%d;%d;%d;%19[^\n]\n",
                ranking->jogador[i].nome,
                &ranking->jogador[i].pontuacao,
-               &ranking->jogador[i].tempo);
+               &ranking->jogador[i].tempo,
+               &ranking->jogador[i].dificuldadeSelecionada,
+               ranking->jogador[i].dataRegistro);
     }
 
     fclose(arquivo);
 }
-
