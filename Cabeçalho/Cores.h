@@ -9,6 +9,10 @@ Color obterCorBlocoMedio();
 
 Color obterCorBlocoFraco();
 
+Color obterCorBlocoMetal();
+
+Color obterCorBlocoTitanio();
+
 Color obterCorBola();
 
 Color obterCorBarra();
@@ -22,6 +26,8 @@ Color obterCorItemDiminuir();
 Color obterCorItemPontos();
 
 Color obterCorItemInversor();
+
+Color obterCorItemEscudo();
 
 Color obterCorFundo();
 
