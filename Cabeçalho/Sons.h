@@ -26,4 +26,3 @@ void definirVolume(float volume);
 void alternarSom();
 
 #endif
-
