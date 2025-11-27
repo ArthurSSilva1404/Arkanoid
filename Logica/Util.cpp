@@ -2,6 +2,8 @@
 #include "Constantes.h"
 #include "raylib.h"
 #include <cmath>
+#include <algorithm>
+#include <cstdlib>
 
 // Função para verificar colisão entre círculo (bola) e retângulo (barra/bloco)
 bool verificarColisaoCirculoRetangulo(Posicao circulo, float raio, Retangulo2D retangulo) {
@@ -30,22 +32,22 @@ bool verificarColisaoCirculoRetangulo(Posicao circulo, float raio, Retangulo2D r
 }
 
 // Função para calcular a pontuação baseada em tempo, dificuldade e blocos quebrados
-int calcularPontuacao(int tempo, int dificuldade, int blocos_quebrados) {
-    int pontos_base = blocos_quebrados * 100;
-    float multiplicador_dificuldade = 1.0f;
+int calcularPontuacao(int tempo, int dificuldade, int blocos_quebrados, int itens_coletados, int vidas_restantes) {
+    int pontos_base = blocos_quebrados * 120;
+    int bonus_itens = itens_coletados * 80;
+    int bonus_tempo = (tempo > 0) ? std::max(0, 1800 - tempo * 4) : 1800;
+    int bonus_vidas = vidas_restantes * 250;
 
-    if (dificuldade == 1) {
-        multiplicador_dificuldade = 1.0f;
-    } else if (dificuldade == 2) {
-        multiplicador_dificuldade = 1.25f;
-    } else if (dificuldade == 3) {
-        multiplicador_dificuldade = 1.5f;
+    float multiplicador_dificuldade = 1.0f;
+    if (dificuldade == DIFICULDADE_MEDIO) {
+        multiplicador_dificuldade = FATOR_DIFICULDADE_MEDIO;
+    } else if (dificuldade == DIFICULDADE_DIFICIL) {
+        multiplicador_dificuldade = FATOR_DIFICULDADE_DIFICIL;
     }
 
-    // Bônus por tempo (quanto menos tempo, mais pontos)
-    int bonus_tempo = (tempo > 0) ? (1000 / tempo) : 0;
-
-    return (int)(pontos_base * multiplicador_dificuldade) + bonus_tempo;
+    float total = (pontos_base + bonus_itens + bonus_tempo + bonus_vidas);
+    total *= multiplicador_dificuldade;
+    return (int)total;
 }
 
 // Função para gerar número aleatório entre min e max
