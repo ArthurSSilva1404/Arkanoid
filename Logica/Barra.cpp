@@ -1,27 +1,26 @@
 #include "Estruturas.h"
 #include "Barra.h"
-#include "cores.h"
+#include "Cores.h"
+#include "Constantes.h"
 #include "raylib.h"
-
-#define VELOCIDADE 400
 
 void iniciarBarra(Barra *barra) {
 
-    barra->retangulo.posicao.x = 350;
-    barra->retangulo.posicao.y = 550;
-    barra->retangulo.largura = 100;
+    barra->retangulo.posicao.x = (LARGURA_TELA / 2.0f) - 70.0f;
+    barra->retangulo.posicao.y = ALTURA_TELA - 80.0f;
+    barra->retangulo.largura = 140;
     barra->retangulo.altura = 20;
-    barra->velocidadex = 0;
+    barra->velocidadex = 0.0f;
 
 }
 void atualizarBarra(Barra *barra, float dt) {
     
     if (IsKeyDown(KEY_LEFT) || IsKeyDown (KEY_A)) {
-        barra->velocidadex = -VELOCIDADE;
+        barra->velocidadex = -VELOCIDADE_BARRA;
     } else if (IsKeyDown(KEY_RIGHT) || IsKeyDown (KEY_D)) {
-        barra->velocidadex = VELOCIDADE;
+        barra->velocidadex = VELOCIDADE_BARRA;
     } else {
-        barra->velocidadex = 0.0;
+        barra->velocidadex = 0.0f;
     }
 
     barra->retangulo.posicao.x += barra->velocidadex * dt;
@@ -30,27 +29,26 @@ void atualizarBarra(Barra *barra, float dt) {
     if (barra->retangulo.posicao.x < 0) {
         barra->retangulo.posicao.x = 0;
     }
-    if (barra->retangulo.posicao.x + barra->retangulo.largura > 800) {
+    if (barra->retangulo.posicao.x + barra->retangulo.largura > LARGURA_TELA) {
 
-        barra->retangulo.posicao.x = 800 - barra->retangulo.largura;
+        barra->retangulo.posicao.x = LARGURA_TELA - barra->retangulo.largura;
 
     } 
 }
 
 void atualizarTamanho(Barra *barra, int tamanhoAd, bool adicionar)
 {
-    
     if (adicionar) {
-
         barra->retangulo.largura += tamanhoAd;
-
     } else {
-
         barra->retangulo.largura -= tamanhoAd;
+    }
 
-    } 
-
-
+    if (barra->retangulo.largura < 60) {
+        barra->retangulo.largura = 60;
+    } else if (barra->retangulo.largura > 220) {
+        barra->retangulo.largura = 220;
+    }
 }
 
 void desenharBarra(Barra *barra) {
