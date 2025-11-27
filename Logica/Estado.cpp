@@ -1,4 +1,4 @@
-#include "estado.h"
+#include "Estado.h"
 
 void inicializarEstado(GerenciadorEstado *gerenciador) {
     gerenciador->estado_atual = ESTADO_MENU;
@@ -35,4 +35,3 @@ void resetarEstado(GerenciadorEstado *gerenciador) {
     gerenciador->tempo_total = 0.0f;
     gerenciador->blocos_quebrados_total = 0;
 }
-
