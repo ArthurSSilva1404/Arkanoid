@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Estruturas.h"
 
 #ifndef BOLA
