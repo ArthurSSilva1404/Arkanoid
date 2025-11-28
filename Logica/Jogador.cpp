@@ -1,21 +1,18 @@
-#include "../Cabeçalho/Jogador.h"
-#include "../Cabeçalho/Estruturas.h"
-#include <iostream>
+#include "Estruturas.h"
+#include "Jogador.h"
+#include "Constantes.h"
 
 void atualizarPontuacao(Jogador *jogador, int pontuacao) {
-    if (jogador != nullptr) {
-        jogador->pontuacao += pontuacao;
+    jogador->pontuacao += pontuacao;
+    if (jogador->pontuacao < 0) {
+        jogador->pontuacao = 0;
     }
 }
 
 void atualizarTempo(Jogador *jogador) {
-    if (jogador != nullptr) {
-        jogador->tempo++;
-    }
+    jogador->tempo++;
 }
 
 void atualizarVidas(Jogador *jogador) {
-    if (jogador != nullptr) {
-        jogador->vidas_jogador--;
-    }
+    jogador->vidas_jogador--;
 }
