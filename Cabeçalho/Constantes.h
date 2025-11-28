@@ -1,4 +1,4 @@
-#include <iostream>
+include <iostream>
 
 #ifndef CONSTANTES
 #define CONSTANTES
@@ -10,7 +10,7 @@
 #define TAMANHO_BLOCO_LARGURA 64
 #define TAMANHO_BLOCO_ALTURA 24
 #define RAIO_BOLA 9
-#define VELOCIDADE_BOLA_BASE 280.0f
+#define VELOCIDADE_BOLA_BASE 200.0f
 #define VELOCIDADE_BARRA 420.0f
 #define VIDAS_INICIAIS 3
 #define MAX_BLOCOS 120
