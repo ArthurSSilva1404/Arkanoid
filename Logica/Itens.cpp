@@ -118,4 +118,3 @@ void efeitoItem(ItensEspeciais *item, EstadoJogo *estado) {
 
     item->esta_Ativo = false;
 }
-
