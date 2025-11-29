@@ -1,55 +1,87 @@
 #include "Sons.h"
+#include <cstring>
 
-static GerenciadorSons gerenciador_global = {true, 1.0f};
-
-void inicializarSons(GerenciadorSons *gerenciador) {
-    gerenciador->som_ativado = true;
-    gerenciador->volume = 1.0f;
-    gerenciador_global = *gerenciador;
+void inicializarAudio(SistemaAudio *audio) {
+    if (audio == nullptr) return;
+    
+    InitAudioDevice();
+    
+    memset(audio, 0, sizeof(SistemaAudio));
+    
+    // Tentar carregar música de fundo - se falhar, continua sem som
+    audio->musicaFundo = LoadMusicStream("Sons/somMusicaDeFundo.wav");
+    SetMusicVolume(audio->musicaFundo, 0.3f);
+    audio->musicaFundo.looping = true;
+    
+    // Tentar carregar sons - se falharem, continua sem som
+    audio->somQuebrarBloco = LoadSound("Sons/somQuebrarBloco.wav");
+    SetSoundVolume(audio->somQuebrarBloco, 0.6f);
+    
+    audio->somColisaoBolaBarra = LoadSound("Sons/somColisaoBolaBarra.wav");
+    SetSoundVolume(audio->somColisaoBolaBarra, 0.6f);
+    
+    audio->somColetouItem = LoadSound("Sons/somColetouItem.wav");
+    SetSoundVolume(audio->somColetouItem, 0.8f);
+    
+    audio->somVitoria = LoadSound("Sons/somVitoria.wav");
+    SetSoundVolume(audio->somVitoria, 0.7f);
+    
+    audio->somDerrota = LoadSound("Sons/somDerrota.wav");
+    SetSoundVolume(audio->somDerrota, 0.7f);
+    
+    audio->audioCarregado = true;
 }
 
-void tocarSomColisao() {
-    if (gerenciador_global.som_ativado) {
-        // Implementar som de colisão
-        // PlaySound(som_colisao);
-    }
+void tocarMusicaFundo(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlayMusicStream(audio->musicaFundo);
 }
 
-void tocarSomBlocoDestruido() {
-    if (gerenciador_global.som_ativado) {
-        // Implementar som de bloco destruído
-        // PlaySound(som_bloco);
-    }
+void pararMusicaFundo(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    StopMusicStream(audio->musicaFundo);
 }
 
-void tocarSomItemColetado() {
-    if (gerenciador_global.som_ativado) {
-        // Implementar som de item coletado
-        // PlaySound(som_item);
-    }
+void atualizarMusicaFundo(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    UpdateMusicStream(audio->musicaFundo);
 }
 
-void tocarSomGameOver() {
-    if (gerenciador_global.som_ativado) {
-        // Implementar som de game over
-        // PlaySound(som_game_over);
-    }
+void tocarSomQuebrarBloco(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlaySound(audio->somQuebrarBloco);
 }
 
-void tocarSomVitoria() {
-    if (gerenciador_global.som_ativado) {
-        // Implementar som de vitória
-        // PlaySound(som_vitoria);
-    }
+void tocarSomColisaoBolaBarra(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlaySound(audio->somColisaoBolaBarra);
 }
 
-void definirVolume(float volume) {
-    if (volume >= 0.0f && volume <= 1.0f) {
-        gerenciador_global.volume = volume;
-        // SetMasterVolume(volume);
-    }
+void tocarSomColetouItem(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlaySound(audio->somColetouItem);
 }
 
-void alternarSom() {
-    gerenciador_global.som_ativado = !gerenciador_global.som_ativado;
+void tocarSomVitoria(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlaySound(audio->somVitoria);
+}
+
+void tocarSomDerrota(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    PlaySound(audio->somDerrota);
+}
+
+void descarregarAudio(SistemaAudio *audio) {
+    if (audio == nullptr || !audio->audioCarregado) return;
+    
+    UnloadMusicStream(audio->musicaFundo);
+    UnloadSound(audio->somQuebrarBloco);
+    UnloadSound(audio->somColisaoBolaBarra);
+    UnloadSound(audio->somColetouItem);
+    UnloadSound(audio->somVitoria);
+    UnloadSound(audio->somDerrota);
+    
+    CloseAudioDevice();
+    audio->audioCarregado = false;
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Estruturas.h"
+#include "Sons.h"
 
 #ifndef ESTADO_DO_JOGO
 #define ESTADO_DO_JOGO
@@ -16,6 +17,7 @@ struct EstadoJogo {
     Fase fase;
     ItensEspeciais itens[MAX_ITENS];
     SistemaParticulas sistemaParticulas;
+    SistemaAudio audio;
     EstatisticasPartida estatisticas;
     Jogador jogador;
     int dificuldade;
@@ -28,8 +30,12 @@ struct EstadoJogo {
     bool escudoAtivo;
     float tempoEscudoRestante;
     Rectangle escudoArea;
-    Meteoro meteoros[MAX_METEOROS];
-    float tempoParaProximoMeteoro;
+    float multiplicadorPontos;
+    int tempoMultiplicador;
+    int ultimoItemColetado;
+    float tempoMostrarItem;
+    bool inversorAtivo;
+    int tempoInversor;
 };
 
 void prepararEstadoJogo(EstadoJogo *estado, const char *nome, int dificuldade);
@@ -41,5 +47,12 @@ float obterMultiplicadorDificuldade(int dificuldade);
 const char *obterNomeDificuldade(int dificuldade);
 
 void consolidarPontuacaoFinal(EstadoJogo *estado);
+
+// Funções de controle do jogo
+void atualizarJogo(EstadoJogo *estado, float dt);
+void processarColisoes(EstadoJogo *estado);
+void verificarCondicaoVida(EstadoJogo *estado, bool *perdeuJogo);
+void avancarParaProximaFase(EstadoJogo *estado);
+void resetarVida(EstadoJogo *estado);
 
 #endif

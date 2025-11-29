@@ -7,6 +7,7 @@
 #include <cstring>
 
 void iniciarRanking(Ranking *ranking, char *arquivo) {
+    (void)arquivo;  // Parâmetro não utilizado
     ranking->total_jogadores = 0;
     
     // Inicializar todos os jogadores com valores padrão

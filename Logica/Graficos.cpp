@@ -2,6 +2,7 @@
 #include "Constantes.h"
 #include "Cores.h"
 #include "Jogo.h"
+#include "Itens.h"
 #include "Utils.h"
 #include <cmath>
 #include <algorithm>
@@ -74,24 +75,54 @@ void desenharEscudoVisual(Rectangle area, float intensidade) {
                        Color{200, 255, 255, 200});
 }
 
-void desenharMeteoros(const Meteoro meteoros[], int quantidade) {
-    for (int i = 0; i < quantidade; i++) {
-        if (!meteoros[i].ativo) continue;
-        Vector2 pos = meteoros[i].posicao;
-        Vector2 cauda = { pos.x + meteoros[i].velocidade.x * -0.05f,
-                          pos.y + meteoros[i].velocidade.y * -0.05f };
-        DrawLineV(pos, cauda, Fade(meteoros[i].cor, 0.7f));
-        DrawCircleV(pos, meteoros[i].tamanho * 0.2f, meteoros[i].cor);
-    }
-}
-
 void desenharHUD(const EstadoJogo *estado) {
     DrawText(TextFormat("Pontuacao: %d", estado->jogador.pontuacao), 24, 18, 24, obterCorTexto());
     DrawText(TextFormat("Tempo: %02d:%02d", estado->jogador.tempo / 60, estado->jogador.tempo % 60), 24, 48, 24, obterCorTexto());
     DrawText(TextFormat("Vidas: %d", estado->jogador.vidas_jogador), 24, 78, 24, obterCorTexto());
     DrawText(TextFormat("Itens: %d", estado->jogador.itens_coletados), 24, 108, 24, obterCorTexto());
-    if (estado->escudoAtivo) {
-        DrawText(TextFormat("Escudo: %.0fs", ceilf(estado->tempoEscudoRestante)), 24, 138, 22, obterCorTitulo());
+    
+    // Mostrar último item coletado
+    if (estado->tempoMostrarItem > 0.0f) {
+        const char *nomeItem = "";
+        Color corItem = WHITE;
+        switch (estado->ultimoItemColetado) {
+            case ITEM_VIDA:
+                nomeItem = "Vida Extra!";
+                corItem = GREEN;
+                break;
+            case ITEM_AUMENTAR_BARRA:
+                nomeItem = "Barra Maior!";
+                corItem = BLUE;
+                break;
+            case ITEM_DIMINUIR_BARRA:
+                nomeItem = "Barra Menor!";
+                corItem = PURPLE;
+                break;
+            case ITEM_PONTOS_EXTRAS:
+                nomeItem = "Pontos Extras!";
+                corItem = GOLD;
+                break;
+            case ITEM_MULTIPLICADOR:
+                nomeItem = "Multiplicador x2!";
+                corItem = ORANGE;
+                break;
+            case ITEM_INVERSOR:
+                nomeItem = "Inversor Ativo!";
+                corItem = RED;
+                break;
+        }
+        DrawText(nomeItem, 24, 138, 22, corItem);
+    }
+    
+    // Mostrar multiplicador ativo
+    if (estado->multiplicadorPontos > 1.0f) {
+        DrawText(TextFormat("Multiplicador x%.0f (%ds)", estado->multiplicadorPontos, estado->tempoMultiplicador / 60), 
+                 24, 168, 20, ORANGE);
+    }
+    
+    // Mostrar inversor ativo
+    if (estado->inversorAtivo) {
+        DrawText(TextFormat("INVERSOR ATIVO! (%ds)", estado->tempoInversor / 60), 24, 198, 20, RED);
     }
 
     DrawText(TextFormat("Fase %d - %s", estado->fase_atual, estado->fase.nome),
@@ -130,10 +161,19 @@ void desenharTelaDificuldade(int selecionada) {
     };
 
     for (int i = 0; i < 3; i++) {
-        Color cor = (selecionada == i + 1) ? YELLOW : obterCorTexto();
-        DrawText(labels[i], LARGURA_TELA / 2 - 220, 180 + i * 60, 26, cor);
+        int dificuldade = i + 1;
+        Color cor = (selecionada == dificuldade) ? YELLOW : obterCorTexto();
+        int tamanho = (selecionada == dificuldade) ? 30 : 26;
+        
+        // Desenhar indicador visual
+        if (selecionada == dificuldade) {
+            DrawText(">", LARGURA_TELA / 2 - 260, 180 + i * 60, tamanho, YELLOW);
+        }
+        
+        DrawText(labels[i], LARGURA_TELA / 2 - 220, 180 + i * 60, tamanho, cor);
     }
 
+    DrawText("Use W/S ou SETAS para navegar", LARGURA_TELA / 2 - 180, ALTURA_TELA - 150, 20, LIGHTGRAY);
     DrawText("ENTER - confirmar | ESC - voltar", LARGURA_TELA / 2 - 200, ALTURA_TELA - 120, 22, LIGHTGRAY);
 }
 void inicializarSistemaParticulas(SistemaParticulas *sistema) {
@@ -189,5 +229,54 @@ void desenharParticulas(const SistemaParticulas *sistema) {
         Color cor = sistema->particulas[i].cor;
         cor.a = alpha;
         DrawCircleV(sistema->particulas[i].posicao, 2.0f, cor);
+    }
+}
+
+bool capturarNomeMenu(char *nome, int tamanhoMaximo) {
+    static int posicao = 0;
+    static bool inicializado = false;
+    
+    if (!inicializado) {
+        nome[0] = '\0';
+        posicao = 0;
+        inicializado = true;
+    }
+
+    int key = GetCharPressed();
+    while (key > 0) {
+        if (key >= 32 && key <= 126 && posicao < tamanhoMaximo - 1) {
+            nome[posicao] = (char)key;
+            posicao++;
+            nome[posicao] = '\0';
+        }
+        key = GetCharPressed();
+    }
+
+    if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressed(KEY_DELETE)) && posicao > 0) {
+        posicao--;
+        nome[posicao] = '\0';
+    }
+
+    ClearBackground(obterCorFundo());
+    desenharBorda();
+    DrawText("Digite seu nome galactico", LARGURA_TELA / 2 - 220, 120, 34, obterCorTitulo());
+    DrawRectangle(LARGURA_TELA / 2 - 220, 220, 440, 60, Color{0, 0, 0, 120});
+    DrawRectangleLines(LARGURA_TELA / 2 - 220, 220, 440, 60, obterCorTitulo());
+    DrawText(TextFormat("%s_", nome), LARGURA_TELA / 2 - 200, 235, 32, obterCorTexto());
+    DrawText("ENTER - confirmar | ESC - voltar", LARGURA_TELA / 2 - 200, ALTURA_TELA - 120, 22, LIGHTGRAY);
+
+    if ((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) && posicao > 0) {
+        inicializado = false;
+        return true;
+    }
+
+    return false;
+}
+
+void desenharItensAtivos(const EstadoJogo *estado) {
+    for (int i = 0; i < estado->qtd_itens; i++) {
+        if (estado->itens[i].esta_Ativo) {
+            desenharItem((ItensEspeciais *)&estado->itens[i]);
+        }
     }
 }

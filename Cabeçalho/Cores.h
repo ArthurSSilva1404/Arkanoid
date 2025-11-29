@@ -25,6 +25,8 @@ Color obterCorItemDiminuir();
 
 Color obterCorItemPontos();
 
+Color obterCorItemMultiplicador();
+
 Color obterCorItemInversor();
 
 Color obterCorItemEscudo();

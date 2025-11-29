@@ -10,26 +10,29 @@
 #include <algorithm>
 
 static const int MAPAS[MAX_FASES][MAPA_LINHAS][MAPA_COLUNAS] = {
+    // Fase 1: Ondas Simétricas (melhorado)
     {
-        {0,1,1,1,1,1,1,1,1,0},
-        {1,2,2,2,2,2,2,2,2,1},
-        {1,2,3,3,4,4,3,3,2,1},
-        {0,2,3,5,5,5,5,3,2,0},
-        {0,1,2,3,5,5,3,2,1,0},
-        {0,0,1,1,2,2,1,1,0,0},
+        {1,1,2,2,3,3,2,2,1,1},
+        {2,2,3,3,4,4,3,3,2,2},
+        {3,3,4,4,5,5,4,4,3,3},
+        {2,2,3,3,4,4,3,3,2,2},
+        {1,1,2,2,3,3,2,2,1,1},
+        {0,1,1,2,2,2,2,1,1,0},
     },
+    // Fase 2: Diamante Central (melhorado)
     {
         {0,4,4,4,4,4,4,4,4,0},
-        {2,2,2,3,3,3,3,2,2,2},
+        {2,2,3,3,3,3,3,3,2,2},
         {2,3,3,5,5,5,5,3,3,2},
-        {2,3,5,0,0,0,0,5,3,2},
+        {2,3,5,5,0,0,5,5,3,2},
         {1,2,3,3,5,5,3,3,2,1},
         {0,1,2,2,3,3,2,2,1,0},
     },
+    // Fase 3: Xadrez Desafiador (melhorado)
     {
-        {4,0,4,0,4,0,4,0,4,0},
-        {2,2,5,5,5,5,5,5,2,2},
-        {1,2,3,3,3,3,3,3,2,1},
+        {4,0,4,0,5,5,0,4,0,4},
+        {0,3,3,5,5,5,5,3,3,0},
+        {2,2,3,3,4,4,3,3,2,2},
         {1,3,3,4,4,4,4,3,3,1},
         {0,2,3,5,5,5,5,3,2,0},
         {0,1,2,3,3,3,3,2,1,0},
@@ -114,28 +117,31 @@ void iniciarFase(Fase *fase, int numeroFase) {
         for (int j = 0; j < fase->coluna; j++) {
             Bloco *bloco = &fase->blocos[indice++];
             int tipo = MAPAS[fase->indiceMapa][i][j];
-            if (tipo <= 0) {
-                bloco->ativo = false;
-                bloco->TotalDeVida = 0;
-                bloco->possuiItem = false;
-                bloco->pontosBase = 0;
-                bloco->retangulo = {{0, 0}, 0, 0};
-                bloco->cor = obterCorBlocoFraco();
-                bloco->indestrutivel = false;
-                bloco->tipo = 0;
-                continue;
-            }
-
+            
             float posx = inicioX + j * (TAMANHO_BLOCO_LARGURA + 4);
             float posy = inicioY + i * (TAMANHO_BLOCO_ALTURA + 6);
 
             int vida = 1;
-            bloco->indestrutivel = false;
             bloco->tipo = tipo;
 
+            if (tipo <= 0) {
+                // Bloco vazio - não renderizar mas manter estrutura
+                bloco->ativo = false;
+                bloco->TotalDeVida = 0;
+                bloco->possuiItem = false;
+                bloco->pontosBase = 0;
+                bloco->retangulo.posicao.x = posx;
+                bloco->retangulo.posicao.y = posy;
+                bloco->retangulo.largura = TAMANHO_BLOCO_LARGURA;
+                bloco->retangulo.altura = TAMANHO_BLOCO_ALTURA;
+                bloco->cor = obterCorBlocoFraco();
+                continue;
+            }
+
+            // Determinar vida baseado no tipo
             switch (tipo) {
                 case TIPO_BLOCO_CRISTAL:
-                    vida = 1 + GetRandomValue(0, 1);
+                    vida = 1;
                     break;
                 case TIPO_BLOCO_CERAMICA:
                     vida = 2;
@@ -144,27 +150,22 @@ void iniciarFase(Fase *fase, int numeroFase) {
                     vida = 3;
                     break;
                 case TIPO_BLOCO_METAL:
-                    vida = 1;
-                    bloco->indestrutivel = true;
-                    bloco->cor = obterCorBlocoMetal();
+                    vida = 2;
                     break;
                 case TIPO_BLOCO_TITANIO:
-                    vida = 5;
+                    vida = 3;
                     break;
                 default:
                     vida = 1;
                     break;
             }
 
+            // Inicializar bloco
             iniciarBloco(bloco, posx, posy, vida);
-            if (!bloco->indestrutivel) {
-                bloco->cor = gerarCorPorTipo(tipo);
-            }
-            bloco->pontosBase = bloco->indestrutivel ? 0 : 90 * vida;
-            bloco->possuiItem = (!bloco->indestrutivel) && (GetRandomValue(0, 100) < (18 + numeroFase * 4));
-            if (!bloco->indestrutivel && GetRandomValue(0, 100) < 8) {
-                bloco->ativo = false;
-            }
+            bloco->ativo = true;  // Sempre ativo
+            bloco->cor = gerarCorPorTipo(tipo);
+            bloco->pontosBase = 90 * vida;
+            bloco->possuiItem = (GetRandomValue(0, 100) < (20 + numeroFase * 3));
         }
     }
 }

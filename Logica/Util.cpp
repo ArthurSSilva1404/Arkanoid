@@ -1,4 +1,3 @@
-
 #include "Estruturas.h"
 #include "Constantes.h"
 #include "raylib.h"
@@ -54,4 +53,91 @@ int calcularPontuacao(int tempo, int dificuldade, int blocos_quebrados, int iten
 // Função para gerar número aleatório entre min e max
 int gerarAleatorio(int min, int max) {
     return min + (rand() % (max - min + 1));
+}
+
+// ============================================
+// TEMPLATES DE FUNÇÃO (Requisito do Projeto)
+// ============================================
+
+// Template para encontrar o máximo entre dois valores
+template<typename T>
+T maximo(T a, T b) {
+    return (a > b) ? a : b;
+}
+
+// Template para encontrar o mínimo entre dois valores
+template<typename T>
+T minimo(T a, T b) {
+    return (a < b) ? a : b;
+}
+
+// Template para trocar dois valores
+template<typename T>
+void trocar(T *a, T *b) {
+    T temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// Instanciações explícitas dos templates
+template int maximo<int>(int, int);
+template float maximo<float>(float, float);
+template int minimo<int>(int, int);
+template float minimo<float>(float, float);
+template void trocar<int>(int*, int*);
+template void trocar<float>(float*, float*);
+
+// ============================================
+// FUNÇÕES RECURSIVAS (Requisito do Projeto)
+// ============================================
+
+// Função recursiva para somar números de 1 até n
+int somarRecursivo(int n) {
+    if (n <= 0) {
+        return 0;
+    }
+    return n + somarRecursivo(n - 1);
+}
+
+// Função recursiva para calcular pontos baseado em blocos
+int calcularPontosRecursivo(int blocos, int multiplicador) {
+    if (blocos <= 0) {
+        return 0;
+    }
+    return (10 * multiplicador) + calcularPontosRecursivo(blocos - 1, multiplicador);
+}
+
+// Função recursiva para contar blocos ativos
+int contarBlocosRecursivo(Bloco *blocos, int inicio, int fim) {
+    if (inicio > fim) {
+        return 0;
+    }
+    int count = blocos[inicio].ativo ? 1 : 0;
+    return count + contarBlocosRecursivo(blocos, inicio + 1, fim);
+}
+
+// Função recursiva auxiliar para quicksort (ordenação de pontuação)
+static int particionar(int *array, int inicio, int fim) {
+    int pivo = array[fim];
+    int i = inicio - 1;
+    
+    for (int j = inicio; j < fim; j++) {
+        if (array[j] >= pivo) {  // Ordem decrescente
+            i++;
+            trocar(&array[i], &array[j]);
+        }
+    }
+    trocar(&array[i + 1], &array[fim]);
+    return i + 1;
+}
+
+// Função recursiva para ordenar pontuações (QuickSort)
+void ordenarPontosRecursivo(int *pontos, int inicio, int fim) {
+    if (inicio >= fim) {
+        return;
+    }
+    
+    int pivoPos = particionar(pontos, inicio, fim);
+    ordenarPontosRecursivo(pontos, inicio, pivoPos - 1);
+    ordenarPontosRecursivo(pontos, pivoPos + 1, fim);
 }

@@ -45,6 +45,10 @@ Color obterCorItemPontos() {
     return GOLD;
 }
 
+Color obterCorItemMultiplicador() {
+    return ORANGE;
+}
+
 Color obterCorItemInversor() {
     return PINK;
 }

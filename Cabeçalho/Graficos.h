@@ -33,8 +33,6 @@ void desenharFundoTematico(const Fase *fase, float animacao);
 
 void desenharEscudoVisual(Rectangle area, float intensidade);
 
-void desenharMeteoros(const Meteoro meteoros[], int quantidade);
-
 void desenharHUD(const EstadoJogo *estado);
 
 void desenharTelaGameOver(const EstadoJogo *estado, bool vitoria);
@@ -48,5 +46,9 @@ void gerarExplosao(SistemaParticulas *sistema, Vector2 origem, Color corBase);
 void atualizarParticulas(SistemaParticulas *sistema, float dt);
 
 void desenharParticulas(const SistemaParticulas *sistema);
+
+// Funções auxiliares
+bool capturarNomeMenu(char *nome, int tamanhoMaximo);
+void desenharItensAtivos(const EstadoJogo *estado);
 
 #endif

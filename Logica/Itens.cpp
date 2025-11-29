@@ -25,11 +25,11 @@ void iniciarItem(ItensEspeciais *item, int tipo, float posx, float posy) {
         case ITEM_PONTOS_EXTRAS:
             item->cor = obterCorItemPontos();
             break;
+        case ITEM_MULTIPLICADOR:
+            item->cor = obterCorItemMultiplicador();
+            break;
         case ITEM_INVERSOR:
             item->cor = obterCorItemInversor();
-            break;
-        case ITEM_ESCUDO:
-            item->cor = obterCorItemEscudo();
             break;
         default:
             item->cor = WHITE;
@@ -55,11 +55,11 @@ void desenharItem(ItensEspeciais *item) {
             case ITEM_PONTOS_EXTRAS:
                 label = "P";
                 break;
+            case ITEM_MULTIPLICADOR:
+                label = "x2";
+                break;
             case ITEM_INVERSOR:
                 label = "!";
-                break;
-            case ITEM_ESCUDO:
-                label = "S";
                 break;
         }
         DrawText(label, (int)item->posicao_do_item.x - 5, (int)item->posicao_do_item.y - 6, 16, BLACK);
@@ -86,11 +86,16 @@ void efeitoItem(ItensEspeciais *item, EstadoJogo *estado) {
 
     jogador->itens_coletados++;
     estatisticas->itensColetados++;
+    tocarSomColetouItem(&estado->audio);
 
     switch (item->tipo) {
         case ITEM_VIDA:
+            // Adicionar vida ao jogador
+            jogador->vidas_jogador++;
             jogador->pontuacao += 250;
             estatisticas->bonusPontuacao += 250;
+            estado->ultimoItemColetado = ITEM_VIDA;
+            estado->tempoMostrarItem = 2.0f;
             break;
         case ITEM_AUMENTAR_BARRA:
             if (barra->retangulo.largura < 220) {
@@ -105,14 +110,21 @@ void efeitoItem(ItensEspeciais *item, EstadoJogo *estado) {
         case ITEM_PONTOS_EXTRAS:
             jogador->pontuacao += 500;
             estatisticas->bonusPontuacao += 500;
+            estado->ultimoItemColetado = ITEM_PONTOS_EXTRAS;
+            estado->tempoMostrarItem = 2.0f;
+            break;
+        case ITEM_MULTIPLICADOR:
+            estado->multiplicadorPontos = 2.0f;
+            estado->tempoMultiplicador = 600;
+            estado->ultimoItemColetado = ITEM_MULTIPLICADOR;
+            estado->tempoMostrarItem = 2.0f;
             break;
         case ITEM_INVERSOR:
-            jogador->pontuacao = -jogador->pontuacao;
-            estatisticas->pontuacaoInvertida = !estatisticas->pontuacaoInvertida;
-            break;
-        case ITEM_ESCUDO:
-            estado->escudoAtivo = true;
-            estado->tempoEscudoRestante = TEMPO_ESCUDO;
+            // Ativar inversor por tempo limitado (5 segundos)
+            estado->inversorAtivo = true;
+            estado->tempoInversor = 300;  // 5 segundos a 60 FPS
+            estado->ultimoItemColetado = ITEM_INVERSOR;
+            estado->tempoMostrarItem = 2.0f;
             break;
     }
 

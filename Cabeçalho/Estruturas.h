@@ -24,7 +24,6 @@ struct Bloco {
     Color cor;
     int pontosBase;
     bool possuiItem;
-    bool indestrutivel;
     int tipo;
 };
 
@@ -92,14 +91,6 @@ struct Jogador {
     int dificuldadeSelecionada;
     int itens_coletados;
     int blocos_quebrados;
-};
-
-struct Meteoro {
-    Vector2 posicao;
-    Vector2 velocidade;
-    float tamanho;
-    Color cor;
-    bool ativo;
 };
 
 struct Ranking {
