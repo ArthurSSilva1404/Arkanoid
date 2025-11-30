@@ -1,5 +1,5 @@
 
-# Objetivos do Projeto (Resumo)
+# Objetivos do Projeto
 - Desenvolver um jogo **Arkanoid 2D** em **C++** utilizando a biblioteca **Raylib**.  
 - Aplicar os principais conteúdos da disciplina: ponteiros, alocação dinâmica, structs, funções, modularização com `.h` e `.cpp`, manipulação de arquivos, recursividade e templates.  
 - Criar um projeto organizado, modular, funcional e visualmente estÃ¡vel.  
